@@ -1,6 +1,6 @@
 from django.db import router
 from django.urls import path, include
-from .views import GetAllAdminDataView, AdminWithTurfDetailsViewset, BookingReportViewset, CanceledReportViewset, PaymentReportViewset, PlayerAccountViewset, UserListViewset, AdminListViewset, TurfDetailsViewset, TurfImageViewset, GroundDetailsViewset, GroundImagesViewset, GroundPricingViewset, CoachingTimeViewset, GetUserAccountList  # , UserCreateAPIView
+from .views import GetBookingByDate, GetAllAdminDataView,GetBookingByDateAll,AdminSettingViewset, AdminWithTurfDetailsViewset, BookingReportViewset, CanceledReportViewset, PaymentReportViewset, PlayerAccountViewset, UserListViewset, AdminListViewset, TurfDetailsViewset, TurfImageViewset, GroundDetailsViewset, GroundImagesViewset, GroundPricingViewset, CoachingTimeViewset, GetUserAccountList  # , UserCreateAPIView
 from rest_framework.routers import DefaultRouter
 
 
@@ -26,10 +26,16 @@ router.register(r'booking_report', BookingReportViewset,
                 basename='booking_report')
 router.register(r'canceled_report', CanceledReportViewset,
                 basename='canceled_report')
+router.register(r'admin_setting', AdminSettingViewset,
+                basename='admin_setting')
+router.register('GetBookingByDate', GetBookingByDate, basename='GetBookingByDate')
+router.register('GetBookingByDateAll', GetBookingByDateAll, basename='GetBookingByDateAll')
+
+                
 
 urlpatterns = [
     path('', include(router.urls)),
     path('getuser', GetUserAccountList.as_view(), name='getuser'),
     path('vi', AdminWithTurfDetailsViewset.as_view(), name='vi'),
-    path('get_admin_data', GetAllAdminDataView.as_view(), name='get_admin_data'),
+    path('get_admin_data/', GetAllAdminDataView.as_view(), name='get_admin_data'),
 ]

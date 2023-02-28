@@ -1,7 +1,7 @@
 from dataclasses import fields
 from rest_framework import serializers
-from .models import Admin, BookingReport, CanceledReport, PaymentReport, PlayersAccount, User, turfDetails, turfImages, GroundDetails, GroundImages, GroundPricing, CoachingTime
-
+from .models import Admin, BookingReport,AdminSettings, CanceledReport, PaymentReport, PlayersAccount, User, turfDetails, turfImages, GroundDetails, GroundImages, GroundPricing, CoachingTime
+# from drf_extra_fields.fields import Base64ImageField
 
 class GetUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -127,6 +127,9 @@ class GroundDetailsSerializer(serializers.ModelSerializer):
 class GroundImagesSerializer(serializers.ModelSerializer):
     groundName = serializers.CharField(
         source='GroundDetails.groundName', read_only=True)
+    groundImages = Base64ImageField(
+        max_length=None, use_url=True,
+    )
 
     class Meta:
         model = GroundImages
@@ -150,6 +153,11 @@ class CoachingTimeSerializer(serializers.ModelSerializer):
         model = CoachingTime
         fields = '__all__'
 
+class AdminSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdminSettings
+        fields = '__all__'
+
 class GetGroundPricingSerializer(serializers.ModelSerializer):
     groundName = serializers.CharField(
         source='GroundDetails.groundName', read_only=True)
@@ -165,6 +173,8 @@ class GetGroundDetailsSerializer(serializers.ModelSerializer):
     gimage = GroundImagesSerializer(
         read_only=True, many=True,source='GroundImages')
     gprice = GetGroundPricingSerializer(many=True,read_only=True, source = 'GroundPricing')
+    Ctime = CoachingTimeSerializer(many=True,read_only=True, source = 'CoachingTime')
+    setting = AdminSettingsSerializer(many=True,read_only=True, source = 'ground_setting')
     class Meta:
         model = GroundDetails
         fields = '__all__'
@@ -209,6 +219,14 @@ class BookingRecordSerializer(serializers.ModelSerializer):
         model = BookingReport
         fields = '__all__'
 
+
+class GetAllBooking(serializers.ModelSerializer):
+    # booking_userid = serializers.PrimaryKeyRelatedField(many=True,read_only=True)
+
+    class Meta:
+        model = BookingReport
+        fields = '__all__'
+        depth = 1
 
 class CanceledReportSerializer(serializers.ModelSerializer):
     class Meta:

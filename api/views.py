@@ -1,10 +1,11 @@
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from .serializers import GetAllAdminDataSerializer, BookingRecordSerializer, CanceledReportSerializer, PaymentReportSerializer, PlayersAccountSerializer, UserSerializer, AdminSerializer, TurfDetailsSerializer, TurfImageSerializer, GroundDetailsSerializer, GroundImagesSerializer, GroundPricingSerializer, CoachingTimeSerializer, GetUserSerializer
-from .models import Admin, BookingReport, CanceledReport, PaymentReport, PlayersAccount, turfDetails, turfImages, GroundDetails, GroundImages, GroundPricing, CoachingTime
+from .serializers import GetAllBooking,GetAllAdminDataSerializer,AdminSettingsSerializer, BookingRecordSerializer, CanceledReportSerializer, PaymentReportSerializer, PlayersAccountSerializer, UserSerializer, AdminSerializer, TurfDetailsSerializer, TurfImageSerializer, GroundDetailsSerializer, GroundImagesSerializer, GroundPricingSerializer, CoachingTimeSerializer, GetUserSerializer
+from .models import Admin,AdminSettings, BookingReport, CanceledReport, PaymentReport, PlayersAccount, turfDetails, turfImages, GroundDetails, GroundImages, GroundPricing, CoachingTime
 from rest_framework import viewsets
 from django.contrib.auth.models import User
 from rest_framework import status, generics
 from rest_framework.response import Response
+from rest_framework import filters
 
 
 class UserListViewset(viewsets.ModelViewSet):
@@ -74,7 +75,7 @@ class AdminWithTurfDetailsViewset(generics.GenericAPIView):
 class GetAllAdminDataView(generics.ListAPIView):
     queryset = Admin.objects.all()
     serializer_class = GetAllAdminDataSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get_queryset(self):
         queryset = self.queryset
         user = self.request.user
@@ -90,6 +91,9 @@ class TurfImageViewset(viewsets.ModelViewSet):
     queryset = turfImages.objects.all()
     serializer_class = TurfImageSerializer
 
+class AdminSettingViewset(viewsets.ModelViewSet):
+    queryset = AdminSettings.objects.all()
+    serializer_class = AdminSettingsSerializer
 
 class GroundDetailsViewset(viewsets.ModelViewSet):
     queryset = GroundDetails.objects.all()
@@ -114,6 +118,9 @@ class CoachingTimeViewset(viewsets.ModelViewSet):
 class PlayerAccountViewset(viewsets.ModelViewSet):
     queryset = PlayersAccount.objects.all()
     serializer_class = PlayersAccountSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['userName']
+    
 
 
 class PaymentReportViewset(viewsets.ModelViewSet):
@@ -129,3 +136,30 @@ class BookingReportViewset(viewsets.ModelViewSet):
 class CanceledReportViewset(viewsets.ModelViewSet):
     queryset = CanceledReport.objects.all()
     serializer_class = CanceledReportSerializer
+
+
+
+
+class GetBookingByDate(viewsets.ModelViewSet):
+    queryset = BookingReport.objects.all()
+    serializer_class = BookingRecordSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        from_date = self.request.query_params.get('from')
+        to_date = self.request.query_params.get('to')
+        query_set = queryset.filter(
+            bookedAt__range=[from_date, to_date]).order_by('-bookedAt')
+        return query_set
+
+class GetBookingByDateAll(viewsets.ModelViewSet):
+    queryset = BookingReport.objects.all()
+    serializer_class = GetAllBooking
+
+    def get_queryset(self):
+        queryset = self.queryset
+        from_date = self.request.query_params.get('from')
+        to_date = self.request.query_params.get('to')
+        query_set = queryset.filter(
+            bookedAt__range=[from_date, to_date]).order_by('bookedAt')
+        return query_set

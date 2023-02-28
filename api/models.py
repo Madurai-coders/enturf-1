@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -50,6 +51,7 @@ class GroundDetails(models.Model):
     turfId = models.ForeignKey(
         turfDetails, on_delete=models.CASCADE, related_name='GroundDetails')
     groundName = models.CharField(max_length=225)
+    description = models.CharField(max_length=225,null=True)
     groundOpeningTime = models.TimeField(
         blank=False, auto_now=False, auto_now_add=False)
     groundClosingTime = models.TimeField(
@@ -73,7 +75,8 @@ class GroundImages(models.Model):
 
 
 class GroundPricing(models.Model):
-    groundId = models.ForeignKey(GroundDetails, on_delete=models.CASCADE, related_name='GroundPricing')
+    groundId = models.ForeignKey(
+        GroundDetails, on_delete=models.CASCADE, related_name='GroundPricing')
     slotOpeningTime = models.TimeField(
         blank=False, auto_now=False, auto_now_add=False)
     slotClosingTime = models.TimeField(
@@ -86,7 +89,8 @@ class GroundPricing(models.Model):
 
 
 class CoachingTime(models.Model):
-    groundId = models.OneToOneField(GroundDetails, on_delete=models.CASCADE)
+    groundId = models.ForeignKey(
+        GroundDetails, on_delete=models.CASCADE, related_name='CoachingTime')
     startingTime = models.TimeField(blank=True)
     endingTime = models.TimeField(blank=True)
 
@@ -95,55 +99,43 @@ class CoachingTime(models.Model):
 
 
 class AdminSettings(models.Model):
-    userId = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='user_setting')
-    turfId = models.ForeignKey(
-        turfDetails, on_delete=models.CASCADE, related_name='turf_setting')
     groundId = models.ForeignKey(
         GroundDetails, on_delete=models.CASCADE, related_name='ground_setting')
     adv = models.IntegerField()
-    bufferTime = models.TimeField(auto_now=False, auto_now_add=False)
-    FULLPAYMENT = 'FP'
-    ADVANCE = 'A'
-    NOADVANCE = 'NA'
-    paymentMethodChoices = [(FULLPAYMENT, 'FULLPAYMENT'),
-                            (ADVANCE, 'ADVANCE'), (NOADVANCE, 'NOADVANCE')]
+    paymentCompletion = models.CharField(max_length=225, default='Before')
+    paymentMode = models.CharField(max_length=225, default='Online')
+    bufferTime = models.IntegerField()
     paymentMethod = models.CharField(
-        max_length=2, choices=paymentMethodChoices, default=ADVANCE)
+        max_length=50, default='Advance')
+
+    def __str__(self):
+        return str(self.groundId.groundName)
 
 
 class PlayersAccount(models.Model):
-
     userName = models.CharField(max_length=100)
+    colorCode=models.CharField(max_length=100,default='#EFF0FF#656BFF')
     phoneNumber = models.CharField(max_length=125, unique=True)
-    email = models.EmailField(max_length=254, unique=True)
+    email = models.EmailField(max_length=254, unique=True, null=True)
     dateOfBirth = models.DateField(
-        blank=False, auto_now=False, auto_now_add=False)
+        blank=False, auto_now=False, auto_now_add=False, null=True)
 
     def __str__(self):
         return str(self.userName)
 
 
 class PaymentReport(models.Model):
-    NOADVANCE = 'NA'
-    ADVANCE = 'A'
-    FULLPAYMENT = 'FP'
-    PENDING = 'P'
-    COMPLETED = 'C'
     otp = models.CharField(max_length=125)
+    amount = models.CharField(max_length=125,default=0)
     playerId = models.ForeignKey(
         PlayersAccount, on_delete=models.CASCADE, related_name='payment_userid')
     paymentId = models.CharField(max_length=254, unique=True)
-
-    paymentMethodChoices = [(FULLPAYMENT, 'FULLPAYMENT'),
-                            (ADVANCE, 'ADVANCE'), (NOADVANCE, 'NOADVANCE')]
     paymentMethod = models.CharField(
-        max_length=2, choices=paymentMethodChoices, default=ADVANCE)
-
-    paymentStatusChoices = [(PENDING, 'PENDING'),
-                            (ADVANCE, 'ADVANCE'), (COMPLETED, 'COMPLETED')]
+        max_length=125, default='Advance')
+    paymentType = models.CharField(
+        max_length=125, default='online')
     paymentStatus = models.CharField(
-        max_length=2, choices=paymentStatusChoices, default=PENDING)
+        max_length=125, default='Pending')
     Status = models.BooleanField(default=False)
 
     def __str__(self):
@@ -151,9 +143,10 @@ class PaymentReport(models.Model):
 
 
 class BookingReport(models.Model):
-    COMPLETED = 'C'
-    CANCELED = 'CL'
-    PENDING = 'P'
+    slotOpeningTime = models.TimeField(
+        blank=False, auto_now=False, auto_now_add=False, default='00:00')
+    slotClosingTime = models.TimeField(
+        blank=False, auto_now=False, auto_now_add=False, default='00:00')
     playerId = models.ForeignKey(
         PlayersAccount, on_delete=models.CASCADE, related_name='booking_userid')
     bookingId = models.CharField(max_length=254, unique=True)
@@ -161,12 +154,12 @@ class BookingReport(models.Model):
         turfDetails, on_delete=models.CASCADE, related_name='turf_detailid')
     groundId = models.ForeignKey(
         GroundDetails, on_delete=models.CASCADE, related_name='ground_detailid')
-    bookedAt = models.DateTimeField(auto_now_add=True)
+    bookedAt = models.DateField(auto_now_add=False)
     updatedAt = models.DateTimeField(auto_now=True)
-    bookingStatusChoices = [(COMPLETED, 'NOADVANCE'),
-                            (CANCELED, 'CANCELED'), (PENDING, 'PENDING')]
     bookingStatus = models.CharField(
-        max_length=2, choices=bookingStatusChoices, default=PENDING)
+        max_length=125, default='pending')
+    slotPrice = models.CharField(
+        max_length=125, default=0)
     paymentId = models.ForeignKey(
         PaymentReport, on_delete=models.CASCADE, related_name='paymentid_report')
 

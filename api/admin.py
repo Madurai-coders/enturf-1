@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Admin, BookingReport, CanceledReport, PaymentReport, PlayersAccount, turfDetails, turfImages, GroundDetails, GroundImages, GroundPricing, CoachingTime
+from .models import Admin, BookingReport,AdminSettings, CanceledReport, PaymentReport, PlayersAccount, turfDetails, turfImages, GroundDetails, GroundImages, GroundPricing, CoachingTime
 # Register your models here.
 
 admin.site.register(Admin)
@@ -13,3 +13,4 @@ admin.site.register(BookingReport)
 admin.site.register(PaymentReport)
 admin.site.register(PlayersAccount)
 admin.site.register(CanceledReport)
+admin.site.register(AdminSettings)
